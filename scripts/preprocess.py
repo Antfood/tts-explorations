@@ -4,7 +4,7 @@ import torch
 import librosa
 import soundfile as sf
 import os
-from typing import TypedDict, List
+from typing import List
 from dataclasses import dataclass
 
 
@@ -46,10 +46,10 @@ language = DEFAULT_LANGUAGE
 whisper_compute = "float32"
 
 if torch.cuda.is_available():
-    print("USING CUDA")
+    print(":: DEVICE: USING CUDA")
     device = "cuda"
 else:
-    print("USING CPU")
+    print(":: DEVICE: USING CPU")
 
 whisper_model = whisperx.load_model(
     "small", device=device, language=DEFAULT_LANGUAGE, compute_type=whisper_compute
