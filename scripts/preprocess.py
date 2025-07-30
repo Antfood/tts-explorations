@@ -115,7 +115,7 @@ def split_audio(
     audio_path: Path,
     out_dir: Path,
     aligned_result: dict,
-    target_sr: int = 22050,
+    target_sr: int = 24000,
 ) -> List[ProcessedChunk]:
 
     audio_data, sr = librosa.load(audio_path, sr=target_sr, mono=True)
