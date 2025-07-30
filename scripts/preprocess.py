@@ -4,8 +4,10 @@ import torch
 import librosa
 import soundfile as sf
 import os
+import re
 from typing import List
 from dataclasses import dataclass
+from . import number_utils as nu
 
 
 @dataclass
@@ -101,28 +103,48 @@ def align(audio, transcription) -> dict:
     )
 
 
+def init_files(out_dir: Path):
+    text_path = out_dir / "text"
+    wav_scp_path = out_dir / "wav.scp"
+
+    text_path.write_text("")
+    wav_scp_path.write_text("")
+
+
 def split_audio(
-    audio_path: Path, out_dir: Path, aligned_result: dict
+    audio_path: Path,
+    out_dir: Path,
+    aligned_result: dict,
+    target_sr: int = 22050,
 ) -> List[ProcessedChunk]:
-    audio_data, sr = librosa.load(audio_path, sr=None)
+
+    audio_data, sr = librosa.load(audio_path, sr=target_sr, mono=True)
     written = []
 
     for i, segment in enumerate(aligned_result["segments"]):
         start = segment["start"]
         end = segment["end"]
-        text = segment["text"].strip()
+        text = nu.normalize_text_number(segment["text"].strip(), language)
 
         start_sample = int(start * sr)
         end_sample = int(end * sr)
 
         chunk = audio_data.data[start_sample:end_sample]
-        audio_out_path = out_dir / f"{audio_path.name}_chunk-{i:04d}.wav"
-        text_out_path = out_dir / f"{audio_path.name}_chunk-{i:04d}.txt"
+
+        clean_name = clean_name = re.sub(r"[^a-z0-9]", "_", audio_path.name.lower())
+        id = f"{clean_name}_chunk-{i:04d}"
+
+        audio_out_path = out_dir / f"{id}.wav"
+        text_out_path = out_dir / "text"
+        wav_scp_path = out_dir / "wav.scp"
 
         sf.write(data=chunk, samplerate=sr, file=audio_out_path)
 
-        with open(text_out_path, "w+") as f:
-            f.write(text)
+        with open(text_out_path, "a") as f:
+            f.write(f"{id} {text}\n")
+
+        with open(wav_scp_path, "a") as f:
+            f.write(f"{id} {audio_out_path.absolute()}\n")
 
         processed = ProcessedChunk(
             original_audio_path=audio_path,
