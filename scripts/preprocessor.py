@@ -8,7 +8,7 @@ import re
 from typing import List
 from dataclasses import dataclass
 from . import number_utils as nu
-
+from . import constants as const
 
 @dataclass
 class ProcessedChunk:
@@ -38,13 +38,10 @@ class ProcessedChunk:
         ]
 
 
-DEFAULT_LANGUAGE = "pt"
-WHISPER_BATCH = 8
-
 os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "300"
 
 device = "cpu"
-language = DEFAULT_LANGUAGE
+language = const.DEFAULT_LANGUAGE
 whisper_compute = "float32"
 
 if torch.cuda.is_available():
@@ -54,7 +51,7 @@ else:
     print(":: DEVICE: USING CPU")
 
 whisper_model = whisperx.load_model(
-    "small", device=device, language=DEFAULT_LANGUAGE, compute_type=whisper_compute
+    "small", device=device, language=const.DEFAULT_LANGUAGE, compute_type=whisper_compute
 )
 
 
@@ -65,7 +62,7 @@ def load_align_model(language: str):
     )
 
 
-align_model, metadata = load_align_model(DEFAULT_LANGUAGE)
+align_model, metadata = load_align_model(const.DEFAULT_LANGUAGE)
 
 
 def set_language(lan):
@@ -81,7 +78,7 @@ def set_language(lan):
     align_model, metadata = load_align_model(language)
 
 
-def transcribe(audio_path: Path, batch_size: int = WHISPER_BATCH):
+def transcribe(audio_path: Path, batch_size: int = const.WHISPER_BATCH):
     audio = whisperx.load_audio(audio_path.absolute())
     return audio, whisper_model.transcribe(audio, batch_size=batch_size)
 
@@ -157,3 +154,25 @@ def split_audio(
         written.append(processed)
 
     return written
+
+def preprocess(in_path: Path = const.DEFAULT_IN_PATH, out_path: Path = const.DEFAULT_OUT_PATH):
+    wave_paths = list(in_path.glob("*.wav"))
+
+    print(f":: Found {len(wave_paths)} audio files in {in_path}.")
+    print(f":: Processing files to {out_path}.")
+
+    for i, audio_path in enumerate(wave_paths):
+        print(f":: Processing file {i + 1}/{len(wave_paths)}: {audio_path.name}")
+        audio, transcription = transcribe(audio_path)
+
+        aligned_results = align(audio, transcription)
+        out_path.mkdir(parents=True, exist_ok=True)
+
+        yield split_audio(
+            audio_path,
+            out_path,
+            aligned_results,
+            target_sr=22050,
+        )
+
+
