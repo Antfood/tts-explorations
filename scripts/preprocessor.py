@@ -8,7 +8,6 @@ import re
 from typing import List
 from dataclasses import dataclass
 from . import constants as const
-from normalizer.text_normalizer import TextNormalizer
 
 @dataclass
 class ProcessedChunk:
