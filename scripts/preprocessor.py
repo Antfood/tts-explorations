@@ -9,6 +9,8 @@ from typing import List
 from dataclasses import dataclass
 from . import constants as const
 
+from .normalizer.text_normalizer import TextNormalizer
+
 @dataclass
 class ProcessedChunk:
     original_audio_path: Path
@@ -70,6 +72,10 @@ class Preprocessor:
             language_code=language,
             device=self.device,
         )
+
+        print(f":: Using device: {self.device}")
+
+        self.normalizer = TextNormalizer()
 
     def set_language(self, language: str):
 
