@@ -7,8 +7,8 @@ import os
 import re
 from typing import List
 from dataclasses import dataclass
-from . import number_utils as nu
 from . import constants as const
+from normalizer.text_normalizer import TextNormalizer
 
 @dataclass
 class ProcessedChunk:
@@ -72,6 +72,8 @@ class Preprocessor:
             device=self.device,
         )
 
+        self.normalizer = TextNormalizer()
+
     def set_language(self, language: str):
 
         if self.language == language:
@@ -119,7 +121,7 @@ class Preprocessor:
         for i, segment in enumerate(aligned_result["segments"]):
             start = segment["start"]
             end = segment["end"]
-            text = nu.normalize_text_number(segment["text"].strip(), self.language)
+            text = self.normalizer.normalize_text(segment["text"].strip(), self.language)
 
             start_sample = int(start * sr)
             end_sample = int(end * sr)

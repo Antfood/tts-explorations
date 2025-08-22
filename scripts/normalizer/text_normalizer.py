@@ -216,7 +216,7 @@ class TextNormalizer:
             (self.patterns['time'], lambda m: self._normalize_time(m, language)),
         ]
         
-        if config.thousands_separator == '.':  # Portuguese-style
+        if config.thousands_separator == '.':  
             replacements.extend([
                 (self.patterns['currency_pt'], lambda m: self._normalize_currency_pt(m, language)),
                 (self.patterns['thousands_pt'], lambda m: self.number_to_words(int(m.group(1).replace('.', '')), language)),
@@ -224,7 +224,7 @@ class TextNormalizer:
                 (self.patterns['percentage'], lambda m: self._normalize_percentage(m, language)),
                 (self.patterns['ordinal_pt'], lambda m: self._normalize_ordinal(m, language)),
             ])
-        else:  # English-style (comma as thousands separator)
+        else:  
             replacements.extend([
                 (self.patterns['currency_en'], lambda m: self._normalize_currency_en(m, language)),
                 (self.patterns['thousands_en'], lambda m: self.number_to_words(int(m.group(1).replace(',', '')), language)),
