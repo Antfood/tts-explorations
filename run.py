@@ -4,6 +4,7 @@ from scripts import constants as const
 from pathlib import Path
 import argparse
 import csv
+import boto3
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process audio files.")
@@ -118,3 +119,5 @@ if __name__ == "__main__":
 
             batcher.upload()  # upload processed files to S3
             # clean up processed files
+
+    batcher.upload_metadata()  # upload metadata to S3

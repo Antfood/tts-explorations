@@ -1,4 +1,5 @@
 import boto3
+import os
 from pathlib import Path
 import json
 from typing import List
@@ -43,6 +44,9 @@ class BatcherState:
     def has_token(self) -> bool:
         """Check if this is the first batch."""
         return self.token is not None
+
+
+s3 = boto3.client("s3")
 
 
 class S3Batcher:
@@ -111,6 +115,16 @@ class S3Batcher:
 
         print(f":: Batch {self.progress.batch_count} has downloaded {self.count} files.")
         self.state.save()
+
+    def upload_metadata(self, s3_prefix="metadata"):
+         for root, dirs, files in os.walk(self.metadata_path):
+             for file in files:
+                 local_path = os.path.join(root, file)
+                 s3_key = os.path.join(s3_prefix, file).replace("\\", "/")
+
+                 print(f"Uploading {local_path} to s3://{self.bucket}/{s3_key}")
+                 s3.upload_file(local_path, self.bucket, s3_key)
+
 
     def upload(self):
         wave_paths = list(self.upload_from.glob("*.wav"))
