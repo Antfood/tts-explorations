@@ -46,9 +46,6 @@ class BatcherState:
         return self.token is not None
 
 
-s3 = boto3.client("s3")
-
-
 class S3Batcher:
     def __init__(
         self,
@@ -57,6 +54,7 @@ class S3Batcher:
         metadata_path: Path,
         processed_prefix: str,
         bucket: str,
+        metadata_prefix: str = "metadata",
         batch_size: int = 25,
         include_ext: tuple[str, ...] = (".wav",),
     ):
@@ -70,7 +68,9 @@ class S3Batcher:
         self.include_ext = include_ext
         self.metadata_path = metadata_path
         self.processed_prefix = processed_prefix
+        self.metadata_prefix = metadata_prefix
         self.count = 0
+        self.ignore_prefixes = [f"{metadata_prefix}/", f"{processed_prefix}/"]
 
         self.total = self.counter()
         self.progress = ProgressInfo(metadata_path, self.total)
@@ -116,14 +116,14 @@ class S3Batcher:
         print(f":: Batch {self.progress.batch_count} has downloaded {self.count} files.")
         self.state.save()
 
-    def upload_metadata(self, s3_prefix="metadata"):
+    def upload_metadata(self):
          for root, dirs, files in os.walk(self.metadata_path):
              for file in files:
                  local_path = os.path.join(root, file)
-                 s3_key = os.path.join(s3_prefix, file).replace("\\", "/")
+                 s3_key = os.path.join(self.metadata_prefix, file).replace("\\", "/")
 
                  print(f"Uploading {local_path} to s3://{self.bucket}/{s3_key}")
-                 s3.upload_file(local_path, self.bucket, s3_key)
+                 self.client.upload_file(local_path, self.bucket, s3_key)
 
 
     def upload(self):
@@ -174,10 +174,12 @@ class S3Batcher:
             key = obj["Key"]
 
             if self.include_ext and not key.lower().endswith(self.include_ext):
-                print(
-                    f":: Skipping {key}, does not match include_ext {self.include_ext}"
-                )
+                print( f":: Skipping {key}, does not match include_ext {self.include_ext}")
                 continue
+
+            if any(key.startswith(p) for p in self.ignore_prefixes):
+                 print(f":: Skipping {key}, matches ignored prefix: {self.ignore_prefixes}")
+                 continue
 
             dest_path = self.download_to / key
 

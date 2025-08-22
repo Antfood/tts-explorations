@@ -4,7 +4,6 @@ from scripts import constants as const
 from pathlib import Path
 import argparse
 import csv
-import boto3
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process audio files.")
@@ -76,6 +75,12 @@ if __name__ == "__main__":
         help="Number of files to process in each S3 batch",
     )
 
+    parser.add_argument(
+        "--only_meta",
+        default=False,
+        type=bool,
+    )
+
     args = parser.parse_args()
 
     proc = Preprocessor(
@@ -103,6 +108,10 @@ if __name__ == "__main__":
     args.metadata_path.mkdir(parents=True, exist_ok=True)
 
     csv_path = args.metadata_path / args.csv_filename
+
+    if args.only_meta:
+        batcher.upload_metadata()
+        exit(0)
 
     with open(csv_path, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
