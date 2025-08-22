@@ -1,8 +1,8 @@
 from scripts.preprocessor import Preprocessor, ProcessedChunk
+from scripts.s3_batcher import S3Batcher
 from scripts import constants as const
 from pathlib import Path
 import argparse
-
 import csv
 
 if __name__ == "__main__":
@@ -52,7 +52,28 @@ if __name__ == "__main__":
         type=str,
         default=const.WHISPER_SIZE,
         help="Model size for Whisper (tiny, base, small, medium, large)",
-        )
+    )
+
+    parser.add_argument(
+        "--s3_bucket",
+        type=str,
+        default=const.DEFAULT_S3_BUCKET,
+        help="S3 bucket name",
+    )
+
+    parser.add_argument(
+        "--s3_processed_prefix",
+        type=str,
+        default=const.DEFAULT_S3_PROCESSED_PREFIX,
+        help="S3 prefix for processed files",
+    )
+
+    parser.add_argument(
+        "--s3_batch_size",
+        type=int,
+        default=const.DEFAULT_S3_BATCH_SIZE,
+        help="Number of files to process in each S3 batch",
+    )
 
     args = parser.parse_args()
 
@@ -64,6 +85,15 @@ if __name__ == "__main__":
         language=args.lan,
         metadata_path=args.metadata_path,
         batch_size=args.whisper_batch_size,
+    )
+
+    batcher = S3Batcher(
+        download_to=args.in_path,
+        upload_from=args.out_path,
+        bucket=args.s3_bucket,
+        metadata_path=args.metadata_path,
+        processed_prefix=args.s3_processed_prefix,
+        batch_size=args.s3_batch_size,
     )
 
     # Make sure directories exist
@@ -78,9 +108,13 @@ if __name__ == "__main__":
         headers = ProcessedChunk.headers()
         writer.writerow(headers)
 
-        for chunks in proc.preprocess():
-            print(
-                f":: Writing {len(chunks)} chunks to CSV for file {chunks[0].original_audio_path}"
-            )
-            for chunk in chunks:
-                writer.writerow(chunk.to_list())
+        while batcher.has_next():
+            batcher.next_batch()  # grabs batch from S3
+
+            # procress files
+            for chunks in proc.preprocess():
+                for chunk in chunks:
+                    writer.writerow(chunk.to_list())
+
+            batcher.upload()  # upload processed files to S3
+            # clean up processed files

@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from . import number_utils as nu
 from . import constants as const
 
-
 @dataclass
 class ProcessedChunk:
     original_audio_path: Path
@@ -52,6 +51,7 @@ class Preprocessor:
         compute_type: str = "float32",
         language: str = const.DEFAULT_LANGUAGE,
         batch_size: int = const.WHISPER_BATCH,
+    
     ):
         self.in_path = in_path
         self.out_path = out_path
@@ -158,7 +158,6 @@ class Preprocessor:
         wave_paths = list(self.in_path.glob("*.wav"))
     
         print(f":: Found {len(wave_paths)} audio files in {self.in_path}.")
-        print(f":: Processing files to {self.out_path}.")
     
         for i, audio_path in enumerate(wave_paths):
             print(f":: Processing file {i + 1}/{len(wave_paths)}: {audio_path.name}")

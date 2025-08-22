@@ -42,7 +42,7 @@ class ProgressInfo:
         self.uploaded_keys.append(key)
         self.total_chunks += 1
 
-    def increment_batch(self):
+    def increment_progress(self):
         self.batch_count += 1
         self.before_process_count = len(self.downloaded_keys)
         self.after_process_count = len(self.uploaded_keys)
@@ -66,8 +66,10 @@ class ProgressInfo:
     def load(self):
         if not self.file.exists():
             return
+
         with open(self.file, "r") as f:
             data = json.load(f)
+
         self.downloaded_keys = data.get("downloaded_keys", [])
         self.uploaded_keys = data.get("uploaded_keys", [])
         self.total_expected = data.get("total_expected", self.total_expected)

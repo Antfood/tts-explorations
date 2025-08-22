@@ -1,32 +1,100 @@
 original_audio_path,text_path,audio_path,text,chunk_index
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0000.wav,Ficou interessado?,0
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0001.wav,Converse com seu corretor ou acesse a rouba eco-construções do Instagram.,1
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0002.wav,Ficou interessado?,2
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0003.wav,Converse com seu corretor ou acesse a rouba eco-construções no Instagram.,3
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0004.wav,Ficou interessado?,4
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0005.wav,Converse com seu construtor?,5
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0006.wav,"Construtor não, né?",6
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0007.wav,Ficou interessado?,7
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0008.wav,Converse com seu corretor ou acesse a rouba eco-construções no Instagram.,8
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0009.wav,"Eu vou gravar toda, tá?",9
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0010.wav,"Porque aquele dia eu gravei da rua, eu gravei no microfone USB, agora estou no 414.",10
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0011.wav,Bananeiras ganham um luxuoso resort de campo.,11
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0012.wav,"Com mais de vinte itens de área de lazer, o eco-natureza chega à cidade com apartamentos de 33 a 70 metros quadrados, com opção de um ou dois quartos na melhor localização.",12
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0013.wav,"Apenas 500 metros do centro, próximo aos principais restaurantes, um empreendimento com a qualidade da eco-construtora.",13
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0014.wav,unidades a partir de R$ 280 mil.,14
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0015.wav,Ficou interessado?,15
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0016.wav,Converse com seu corretor ou acesse a rouba ecoconstruções no Instagram.,16
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0017.wav,Bananeiras ganham um luxuoso resort de campo.,17
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0018.wav,"Com mais de vinte itens de área de lazer, o eco-natureza chega à cidade com apartamentos de 33 a 70 metros quadrados, com opção de um ou dois quartos na melhor localização.",18
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0019.wav,"Apenas 500 metros do centro, próximo aos principais restaurantes, um empreendimento com a qualidade da eco-construtora.",19
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0020.wav,unidades a partir de 280 mil.,20
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0021.wav,Ficou interessado?,21
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0022.wav,Converse com seu corretor ou acesse a rouba eco-construções no Instagram.,22
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0023.wav,Bananeiras ganhou um luxuoso resort de campo.,23
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0024.wav,"Com mais de vinte itens de área de lazer, o eco-natureza chega à cidade com apartamentos de 33 a 70 metros quadrados, com a opção de um ou dois quartos na melhor localização.",24
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0025.wav,"apenas 500 metros do centro, próximo aos principais restaurantes.",25
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0026.wav,Um empreendimento com a qualidade da ecoconstrutora.,26
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0027.wav,Unidades a partir de 280 mil.,27
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0028.wav,Ficou interessado?,28
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0029.wav,Converse com seu corretor ou acesse.,29
-data/LouVO_Bananeiras_250526.wav,metadata/text,processed/louvo_bananeiras_250526_wav_chunk-0030.wav,Arroba ecoconstruções no Instagram.,30
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0000.wav,Olhe bem para o horizonte.,0
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0001.wav,Sinto vento.,1
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0002.wav,Tudo o que você precisa está dentro de você.,2
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0003.wav,"Agora, respire fundo e responda.",3
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0004.wav,O que você fez além de manifestos assim?,4
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0005.wav,Mostre que você tem estrela.,5
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0006.wav,Inscreva seus trabalhos no Salão Arp 2024.,6
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0007.wav,Olhe para o horizonte.,7
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0008.wav,Sinto vento.,8
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0009.wav,Tudo o que você precisa está dentro de você.,9
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0010.wav,"Agora, respire fundo e responda.",10
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0011.wav,O que você fez além de manifestos assim?,11
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0012.wav,O que você fez além de manifestos assim?,12
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0013.wav,Mostre que você tem estrela.,13
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0014.wav,Inscreva seus trabalhos no Salão Arp 2024.,14
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0015.wav,Mostre que você tem estrela.,15
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0016.wav,Inscreva seus trabalhos no Salão Arp 2024.,16
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0017.wav,Olhe para o horizonte.,17
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0018.wav,Olhe para o horizonte.,18
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0019.wav,Olhe para o horizonte.,19
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0020.wav,Sinto vento.,20
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0021.wav,Sinto vento.,21
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0022.wav,Tudo que você precisa está dentro de você.,22
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0023.wav,Tudo que você precisa está dentro de você.,23
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0024.wav,"Agora, respire fundo e responda.",24
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0025.wav,"Agora, respire fundo e responda.",25
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0026.wav,O que você fez além de manifestos assim?,26
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0027.wav,Mostre que você tem estrela e escreva seus trabalhos no Salão Arp 2024.,27
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0028.wav,Mostre que você tem estrela e escreva seus trabalhos no Salão Arp 2024.,28
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0029.wav,Mostre que você tem estrela e escreva seus trabalhos no Salão Arp 2024.,29
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0030.wav,Olhe para o horizonte.,30
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0031.wav,Sinto vento.,31
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0032.wav,Tudo que você precisa está dentro de você.,32
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0033.wav,"Agora, respire fundo e responda.",33
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0034.wav,O que você fez além de manifestos assim?,34
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0035.wav,Mostre que você tem estrela.,35
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0036.wav,Inscreva seus trabalhos no Salão Arp 2024.,36
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0037.wav,Olhe para o horizonte.,37
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0038.wav,Olhe para o horizonte.,38
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0039.wav,Sinto vento.,39
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0040.wav,tudo que você precisa está dentro de você.,40
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0041.wav,"Agora, respire fundo e responda.",41
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0042.wav,O que você fez além de manifestos assim?,42
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0043.wav,Mostre que você tem estrela.,43
+data/LouVO_Arp2024_201010.wav,metadata/text,processed/louvo_arp2024_201010_wav_chunk-0044.wav,Escreva seus trabalhos no Salão Arp 2024.,44
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0000.wav,Bem-vindo ao Vila de Tapevi.,0
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0001.wav,"Localizado na região metropolitana do estado de São Paulo, esse terreno de aproximadamente 140 mil metros quadrados é ideal para grandes negócios.",1
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0002.wav,"Impulsionada por investimentos em infraestrutura e pela expansão urbana, o município de Tapevi cresce de forma acelerada.",2
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0003.wav,Sua proximidade com os principais centros urbanos oferece uma localização estratégica para atender as necessidades de mais de 22 milhões de habitantes da região metropolitana.,3
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0004.wav,Eleita a 4ª melhor cidade para serviços pela pesquisa Urban Systems 2024 e tapevi atrai grandes empresas e se consolida como um importante polo gerador de empregos.,4
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0005.wav,"E o Vílage Taperví representa uma oportunidade única, com uma área versátil, predominantemente plana, com substação ao lado e fibra ótica paralela ao terreno.",5
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0006.wav,"O Vílage é perfeito para empreendimentos logísticos, tecnológicos, industriais, comerciais e residenciais minha casa, minha vida.",6
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0007.wav,"Com acesso rápido a CPTM, a rodovia Castelo Branco e apenas 27 quilômetros da capital paulista, o Village oferece uma logística eficiente e privilegiada.",7
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0008.wav,"No Village, infraestrutura, inovação e conectividade se unem para criar o cenário ideal para grandes negócios.",8
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0009.wav,Conheça mais e invista em um dos locais mais promissores de São Paulo.,9
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0010.wav,Bem-vindo ao Vila de Tapevi.,10
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0011.wav,"Localizado na região metropolitana do estado de São Paulo, esse terreno de aproximadamente 140 mil metros quadrados é ideal para grandes negócios.",11
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0012.wav,"Impulsionada por investimentos em infraestrutura e pela expansão urbana, o município de Tapevi cresce de forma acelerada.",12
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0013.wav,Sua proximidade com os principais centros urbanos,13
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0014.wav,oferece uma localização estratégica para atender as necessidades de mais de 22 milhões de habitantes da região metropolitana.,14
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0015.wav,"Eleita a quarta melhor cidade para serviços pela pesquisa Urban Systems 2024, e TAPV atrai grandes empresas, e se consorida como um importante polo gerador de empregos.",15
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0016.wav,"E o Village TAPV representa uma oportunidade única,",16
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0017.wav,"Com o mar é versátil, predominantemente plana, com substação ao lado e fibra ótica paralela ao terreno, o Village é perfeito para empreendimentos logísticos, tecnológicos, industriais, comerciais e residenciais minha casa, minha vida.",17
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0018.wav,"Com acesso rápido a CPTM, a rodovia Castelo Branco e a apenas 27 quilômetros da capital paulista, o Village oferece uma infraestrutura eficiente privilegiada.",18
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0019.wav,"No Village, infraestrutura, inovação e conectividade se unem para criar o cenário ideal para grandes negócios.",19
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0020.wav,Conheça mais e invista em um dos locais mais promissores de São Paulo.,20
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0021.wav,Bem-vindo ao Vila de Tapevi.,21
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0022.wav,"Localizado na região metropolitana do estado de São Paulo, esse terreno de aproximadamente 140 mil metros quadrados é ideal para grandes negócios.",22
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0023.wav,"Impulsionada por investimentos em infraestrutura e pela expansão urbana, o município de Tapevi cresce de forma acelerada.",23
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0024.wav,Sua proximidade com os principais centros urbanos oferece uma localização estratégica para atender as necessidades de mais de 22 milhões de habitantes da região metropolitana.,24
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0025.wav,Eleita a quarta melhor cidade para serviços pela pesquisa Urban Systems 2024 e TAPV atrai grandes empresas e se consolida como uma importante polo-gerador de empregos.,25
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0026.wav,e se consorida como um importante polo gerador de empregos.,26
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0027.wav,E o Village TAPV representa uma oportunidade única.,27
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0028.wav,"Com uma área versátil, predominantemente plana, com subestação ao lado e fibraótica paralela ao terreno, o Village é perfeito para empreendimentos logísticos, tecnológicos, industriais, comerciais e residenciais minha casa, minha vida.",28
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0029.wav,"Com acesso rápido a CPTM, a rodovia Castelo Branco e apenas 27 km da capital paulista, o Village oferece uma logística eficiente e privilegiada.",29
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0030.wav,"No Village, infraestrutura, inovação e conectividade se unem para criar o cenário ideal para grandes negócios.",30
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0031.wav,Conheça mais e invista em um dos locais mais promissores de São Paulo.,31
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0032.wav,Bem-vindo ao Vila de Tapevi.,32
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0033.wav,"Localizado na região metropolitana do estado de São Paulo, esse terreno de aproximadamente 140 mil metros quadrados é ideal para grandes negócios.",33
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0034.wav,"Impulsionada por investimentos em infraestrutura e pela expansão urbana, o município de Tapevi cresce de forma acelerada.",34
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0035.wav,Sua proximidade com os principais centros urbanos,35
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0036.wav,oferece uma localização estratégica para atender as necessidades de mais de 22 milhões de habitantes da região metropolitana.,36
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0037.wav,Eleita a quarta melhor cidade para serviços pela Pesquisa Urban Systems 2024 e tapevia atrai grandes empresas e se consolida com um importante polo gerador de empregos.,37
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0038.wav,E o Vila Gitapevi representa uma oportunidade única.,38
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0039.wav,"Com uma área versátil, predominantemente plana, com substação ao lado e fibraótica paralela ao terreno, o Vila G é perfeito para empreendimentos logísticos, tecnológicos, industriais, comerciais e residenciais minha casa, minha vida.",39
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0040.wav,"Com acesso rápido a CPTM, a Rodovia Castelo Branco e apenas 27 quilômetros da capital paulista,",40
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0041.wav,O Village oferece uma logística eficiente e privilegiada.,41
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0042.wav,"No Village, infraestrutura, inovação e conectividade se unem para criar o cenário ideal para grandes negócios.",42
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0043.wav,Conheça mais e invista em um dos locais mais promissores de São Paulo.,43
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0044.wav,Bem-vindo ao Vila Gita PV.,44
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0045.wav,"Localizado na região metropolitana do estado de São Paulo, este terreno de aproximadamente 140 mil metros quadrados é ideal para grandes negócios.",45
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0046.wav,"Impulsionada por investimentos em infraestrutura e pela expansão urbana, o município de TAPV cresce de forma acelerada.",46
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0047.wav,Sua proximidade com os principais centros urbanos oferece uma localização estratégica para atender as necessidades de mais de 22 milhões de habitantes da região metropolitana.,47
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0048.wav,"eleita a quarta melhor cidade para serviços pela pesquisa Urban Systems 2024, e TAPV atrai grandes empresas e se consolida como um importante polo gerador de empregos.",48
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0049.wav,E o Vila de TAPV representa uma oportunidade única.,49
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0050.wav,"Com uma área versátil, predominantemente plana, com substação ao lado e fibraótica paralela ao terreno, o village é perfeito para empreendimentos logísticos, tecnológicos, industriais, comerciais e residenciais minha casa, minha vida.",50
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0051.wav,"Com acesso rápido a CPTM, a rodovia Castelo Branco e a apenas 27 quilômetros da capital paulista, o Village oferece uma logística eficiente e privilegiada.",51
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0052.wav,"No Village, infraestrutura, inovação e conectividade se unem para criar o cenário ideal para grandes negócios.",52
+data/Lo_VO_VillageItapevi_250425.wav,metadata/text,processed/lo_vo_villageitapevi_250425_wav_chunk-0053.wav,Conheça mais e invista em um dos locais mais promissores de São Paulo.,53
