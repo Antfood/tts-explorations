@@ -71,8 +71,6 @@ class Preprocessor:
             device=self.device,
         )
 
-        self.normalizer = TextNormalizer()
-
     def set_language(self, language: str):
 
         if self.language == language:
