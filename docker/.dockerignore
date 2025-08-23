@@ -12,3 +12,5 @@ processed/
 .env
 metadata/
 **/__pycache__/
+.buildx-cache-new 
+.buildx-cache

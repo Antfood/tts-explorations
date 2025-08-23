@@ -52,6 +52,8 @@ class Preprocessor:
         compute_type: str = "float32",
         language: str = const.DEFAULT_LANGUAGE,
         batch_size: int = const.WHISPER_BATCH,
+        target_sr: int = const.DEFAULT_TARGET_SR,
+
     
     ):
         self.in_path = in_path
@@ -61,6 +63,7 @@ class Preprocessor:
         self.batch_size = batch_size
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.whisper_compute = compute_type
+        self.target_sr = target_sr
         self.whisper_model = whisperx.load_model(
             model_size,
             device=self.device,
@@ -115,7 +118,7 @@ class Preprocessor:
         self,
         audio_path: Path,
         aligned_result: dict,
-        target_sr: int = 24000,
+        target_sr: int = 44100,
     ) -> List[ProcessedChunk]:
 
         audio_data, sr = librosa.load(audio_path, sr=target_sr, mono=True)
@@ -174,7 +177,7 @@ class Preprocessor:
             yield self.split_audio(
                 audio_path,
                 aligned_results,
-                target_sr=22050,
+                target_sr=self.target_sr,
             )
 
     def init_files(self):

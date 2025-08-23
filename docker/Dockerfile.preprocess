@@ -9,11 +9,15 @@ RUN apt-get update && \
         libcudnn8-dev \
         awscli \
         ffmpeg \
+        neovim \
         ca-certificates curl git && \
-        nvim \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir -r librosa boto3 rich whisperx 
+COPY requirements.in .
+
+RUN pip install --upgrade pip pip-tools && \
+    pip-compile --generate-hashes --output-file=requirements.txt requirements.in && \
+    pip install -r requirements.txt
 
 WORKDIR /workspace
 COPY . .

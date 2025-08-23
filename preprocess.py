@@ -81,6 +81,13 @@ if __name__ == "__main__":
         type=bool,
     )
 
+    parser.add_argument(
+        "--target_sr",
+        type=int,
+        default=const.DEFAULT_TARGET_SR,
+        help="Target sample rate for processed audio files",
+    )
+
     args = parser.parse_args()
 
     proc = Preprocessor(
@@ -91,6 +98,7 @@ if __name__ == "__main__":
         language=args.lan,
         metadata_path=args.metadata_path,
         batch_size=args.whisper_batch_size,
+        target_sr=args.target_sr,
     )
 
     batcher = S3Batcher(

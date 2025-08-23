@@ -1,0 +1,36 @@
+# Using runpod's from training and image as base
+FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1
+
+# System deps ESPnet TTS recipes need
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git make vim neovim awscli build-essential cmake sox flac ffmpeg wget curl ca-certificates \
+    python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/espnet
+COPY espnet/ /opt/espnet/
+
+WORKDIR /opt/espnet/tools
+RUN bash ./setup_miniforge.sh
+# this is only used when training on phoneme-based recipes but including as optional
+RUN bash installers/install_phonemizer.sh
+
+SHELL ["/bin/bash", "-lc"]
+RUN source ./activate_python.sh && \
+    pip install -U pip && \
+    pip install -e ".[tts]" && \
+    python check_install.py
+
+# Just in case we need any of the custom scripts
+WORKDIR /workspace
+COPY . /workspace
+
+ENV OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false
+
+# workdir in espnet v2 recipes
+WORKDIR /opt/espnet/egs2
+# activate espnet venv
+CMD ["/bin/bash", "-lc", "source /opt/espnet/tools/activate_python.sh && bash
