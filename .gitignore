@@ -2,4 +2,5 @@
 data/
 processed/
 .env
+metadata/
 **/__pycache__/
