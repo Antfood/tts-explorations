@@ -1,0 +1,14 @@
+.git
+*.pyc
+.env
+.env.*
+node_modules/
+data/
+outputs/
+.cache/
+.DS_Store
+data/
+processed/
+.env
+metadata/
+**/__pycache__/
