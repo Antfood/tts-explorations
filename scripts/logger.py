@@ -49,6 +49,7 @@ class PrettyLogger:
         self.current_step: Optional[str] = None
         self.start_time = time.time()
         self.live_display: Optional[Live] = None
+        self.live_panel_title: str = "Processing Status"
         
         # Style configuration
         self.styles = {
@@ -78,6 +79,84 @@ class PrettyLogger:
             return f"{seconds/60:.1f}m"
         else:
             return f"{seconds/3600:.1f}h"
+    
+    def _generate_status_table(self):
+        """Generate the status table for live display"""
+        # Get console dimensions for proper sizing
+        console_height = self.console.size.height
+        console_width = self.console.size.width
+        
+        # Reserve space for panel borders and headers (approximately 8 lines)
+        max_rows = max(1, console_height - 8)
+        
+        table = Table(show_header=True, header_style="bold cyan", width=console_width - 4)
+        table.add_column("Step", style="cyan", no_wrap=True, min_width=15, max_width=30)
+        table.add_column("Status", justify="center", min_width=10, max_width=12)
+        table.add_column("Duration", justify="right", min_width=8, max_width=10)
+        
+        # Calculate remaining width for details column
+        remaining_width = console_width - 4 - 30 - 12 - 10 - 6  # subtract column widths + padding
+        table.add_column("Details", max_width=max(20, remaining_width))
+        
+        # Get recent steps (limit to available screen space)
+        step_items = list(self.steps.items())
+        if len(step_items) > max_rows:
+            # Show the most recent steps that fit on screen
+            step_items = step_items[-max_rows:]
+        
+        for step_id, step in step_items:
+            status_text = Text(step.status.title())
+            status_text.stylize(self.status_styles.get(step.status, "white"))
+            
+            if step.is_running and step.start_time:
+                duration = self._format_duration(time.time() - step.start_time)
+            elif step.duration:
+                duration = self._format_duration(step.duration)
+            else:
+                duration = "-"
+            
+            # Format details - be more selective about what to show
+            details_str = ""
+            if step.details:
+                key_details = []
+                priority_keys = ["batch_number", "chunks_created_this_batch", "total_chunks_created", 
+                               "files_processed_this_batch", "chunks_per_minute"]
+                
+                # Show priority keys first
+                for key in priority_keys:
+                    if key in step.details:
+                        value = step.details[key]
+                        if isinstance(value, (int, float)) and key.endswith(("_count", "_size", "_total", "_number")):
+                            key_details.append(f"{key.replace('_', ' ').title()}: {value:,}")
+                        else:
+                            key_details.append(f"{key.replace('_', ' ').title()}: {value}")
+                        if len(key_details) >= 2:  # Limit to 2 most important details
+                            break
+                
+                # If no priority keys found, show first 2 details
+                if not key_details:
+                    for key, value in step.details.items():
+                        if key != "error":
+                            if isinstance(value, (int, float)) and key.endswith(("_count", "_size", "_total")):
+                                key_details.append(f"{key}: {value:,}")
+                            else:
+                                key_details.append(f"{key}: {value}")
+                        if len(key_details) >= 2:
+                            break
+                
+                details_str = ", ".join(key_details)
+                # Truncate if too long for the column
+                if len(details_str) > remaining_width - 5:
+                    details_str = details_str[:remaining_width - 8] + "..."
+            
+            # Truncate step name if too long
+            step_name = step.name
+            if len(step_name) > 28:
+                step_name = step_name[:25] + "..."
+            
+            table.add_row(step_name, status_text, duration, details_str)
+        
+        return Panel(table, title=self.live_panel_title, border_style="blue")
     
     def log(self, message: str, level: LogLevel = LogLevel.INFO, prefix: str = ""):
         timestamp = self._get_timestamp()
@@ -170,43 +249,9 @@ class PrettyLogger:
     @contextmanager
     def live_status_panel(self, title: str = "Processing Status"):
         """Create a live-updating status panel for long-running operations"""
-        def generate_status_table():
-            table = Table(show_header=True, header_style="bold cyan")
-            table.add_column("Step", style="cyan", no_wrap=True)
-            table.add_column("Status", justify="center", min_width=10)
-            table.add_column("Duration", justify="right")
-            table.add_column("Details", max_width=40)
-            
-            for step_id, step in self.steps.items():
-                status_text = Text(step.status.title())
-                status_text.stylize(self.status_styles.get(step.status, "white"))
-                
-                if step.is_running and step.start_time:
-                    duration = self._format_duration(time.time() - step.start_time)
-                elif step.duration:
-                    duration = self._format_duration(step.duration)
-                else:
-                    duration = "-"
-                
-                # Format details
-                details_str = ""
-                if step.details:
-                    key_details = []
-                    for key, value in step.details.items():
-                        if key != "error":
-                            if isinstance(value, (int, float)) and key.endswith(("_count", "_size", "_total")):
-                                key_details.append(f"{key}: {value:,}")
-                            else:
-                                key_details.append(f"{key}: {value}")
-                    details_str = ", ".join(key_details[:2])  # Limit to 2 details for space
-                    if len(step.details) > 2:
-                        details_str += "..."
-                
-                table.add_row(step.name, status_text, duration, details_str)
-            
-            return Panel(table, title=title, border_style="blue")
+        self.live_panel_title = title
         
-        self.live_display = Live(generate_status_table(), console=self.console, refresh_per_second=2)
+        self.live_display = Live(self._generate_status_table(), console=self.console, refresh_per_second=2)
         self.live_display.start()
         
         try:
@@ -218,43 +263,7 @@ class PrettyLogger:
     def update_live_display(self):
         """Update the live display if it's active"""
         if self.live_display:
-            def generate_status_table():
-                table = Table(show_header=True, header_style="bold cyan")
-                table.add_column("Step", style="cyan", no_wrap=True)
-                table.add_column("Status", justify="center", min_width=10)
-                table.add_column("Duration", justify="right")
-                table.add_column("Details", max_width=40)
-                
-                for step_id, step in self.steps.items():
-                    status_text = Text(step.status.title())
-                    status_text.stylize(self.status_styles.get(step.status, "white"))
-                    
-                    if step.is_running and step.start_time:
-                        duration = self._format_duration(time.time() - step.start_time)
-                    elif step.duration:
-                        duration = self._format_duration(step.duration)
-                    else:
-                        duration = "-"
-                    
-                    # Format details
-                    details_str = ""
-                    if step.details:
-                        key_details = []
-                        for key, value in step.details.items():
-                            if key != "error":
-                                if isinstance(value, (int, float)) and key.endswith(("_count", "_size", "_total")):
-                                    key_details.append(f"{key}: {value:,}")
-                                else:
-                                    key_details.append(f"{key}: {value}")
-                        details_str = ", ".join(key_details[:2])
-                        if len(step.details) > 2:
-                            details_str += "..."
-                    
-                    table.add_row(step.name, status_text, duration, details_str)
-                
-                return Panel(table, title="Processing Status", border_style="blue")
-            
-            self.live_display.update(generate_status_table())
+            self.live_display.update(self._generate_status_table())
     
     def print_summary(self):
         """Print execution summary"""

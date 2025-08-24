@@ -59,8 +59,10 @@ class S3Batcher:
         batch_size: int = 25,
         include_ext: tuple[str, ...] = (".wav",),
         logger: Optional[PrettyLogger] = None,
+        dry_run: bool = False,
     ):
-        self.client = boto3.client("s3")
+        self.dry_run = dry_run
+        self.client = boto3.client("s3") 
         self.bucket = bucket
         self.download_to = download_to
         self.upload_from = upload_from
@@ -74,31 +76,50 @@ class S3Batcher:
         self.ignore_prefixes = [f"{metadata_prefix}/", f"{processed_prefix}/"]
         self.logger = logger or PrettyLogger()
 
-        # Initialize with bucket scanning
+        # Initialize with bucket scanning (or fake data for dry run)
         with self.logger.step("s3_init", "Initialize S3 batcher") as step:
-            step.log(f"Connecting to S3 bucket: {bucket}")
-            step.update({
-                "bucket": bucket,
-                "batch_size": batch_size,
-                "include_extensions": list(include_ext),
-                "processed_prefix": processed_prefix
-            })
-            
-            step.log("Scanning bucket for total file count...")
-            self.total = self.counter()
-            
-            step.update({"total_files_found": self.total})
-            
-            if self.total == 0:
-                step.log("No files found in bucket", LogLevel.WARN)
+            if dry_run:
+                step.log(f"DRY RUN: Simulating S3 bucket: {bucket}")
+                self.total = 127  # Fake a reasonable number of files
+                step.update({
+                    "bucket": bucket,
+                    "batch_size": batch_size,
+                    "include_extensions": list(include_ext),
+                    "processed_prefix": processed_prefix,
+                    "mode": "dry_run"
+                })
+                step.log(f"DRY RUN: Simulating {self.total:,} files to process")
             else:
-                step.log(f"Found {self.total:,} files to process")
+                step.log(f"Connecting to S3 bucket: {bucket}")
+                step.update({
+                    "bucket": bucket,
+                    "batch_size": batch_size,
+                    "include_extensions": list(include_ext),
+                    "processed_prefix": processed_prefix
+                })
+                
+                step.log("Scanning bucket for total file count...")
+                self.total = self.counter()
+                
+                step.update({"total_files_found": self.total})
+                
+                if self.total == 0:
+                    step.log("No files found in bucket", LogLevel.WARN)
+                else:
+                    step.log(f"Found {self.total:,} files to process")
 
         self.progress = ProgressInfo(metadata_path, self.total)
         self.progress.load()  # Load existing progress
+        
+        # Initialize dry run state
+        if dry_run:
+            self._dry_run_batches_processed = 0
+            self._dry_run_total_batches = (self.total + batch_size - 1) // batch_size  # Ceiling division
 
     def has_next(self) -> bool:
         """Check if there are more files to process."""
+        if self.dry_run:
+            return self._dry_run_batches_processed < self._dry_run_total_batches
         return not self.state.completed
 
     def next_batch(self):
@@ -106,6 +127,9 @@ class S3Batcher:
         batch_num = self.progress.batch_count + 1
         
         with self.logger.step(f"batch_download_{batch_num}", f"Download batch #{batch_num}") as step:
+            if self.dry_run:
+                return self._next_batch_dry_run(batch_num, step)
+            
             # Preparation
             step.log("Preparing for next batch...")
             self.count = 0
@@ -168,6 +192,107 @@ class S3Batcher:
 
         # Save state after batch completion
         self.state.save()
+
+    def _next_batch_dry_run(self, batch_num: int, step):
+        """Simulate downloading a batch for dry run mode"""
+        import time
+        import numpy as np
+        import soundfile as sf
+        
+        step.log("DRY RUN: Simulating batch preparation...")
+        self.count = 0
+        self.clear_local_dirs()
+        
+        # Calculate how many files to simulate in this batch
+        remaining_files = self.total - (self._dry_run_batches_processed * self.batch_size)
+        files_in_this_batch = min(self.batch_size, remaining_files)
+        
+        step.update({
+            "batch_number": batch_num,
+            "target_batch_size": self.batch_size,
+            "simulated_files": files_in_this_batch,
+            "remaining_files": remaining_files,
+            "mode": "dry_run"
+        })
+        
+        step.log(f"DRY RUN: Simulating download of {files_in_this_batch} files...")
+        
+        # Create fake audio files
+        sample_rate = 44100
+        duration = 60  # 60 second files
+        samples = int(sample_rate * duration)
+        
+        with self.logger.progress_bar(files_in_this_batch, "DRY RUN: Creating fake audio files") as progress:
+            task = progress.add_task("creating", total=files_in_this_batch)
+            
+            for i in range(files_in_this_batch):
+                # Generate fake filename
+                file_id = (self._dry_run_batches_processed * self.batch_size) + i + 1
+                fake_filename = f"fake_audio_{file_id:04d}.wav"
+                fake_path = self.download_to / fake_filename
+                
+                # Create parent directory
+                fake_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Generate fake audio (white noise that sounds like speech frequencies)
+                # Create a more realistic sounding fake audio by mixing frequencies
+                t = np.linspace(0, duration, samples)
+                base_freq = 200 + (i % 10) * 50  # Vary base frequency per file
+                
+                # Create a mix of frequencies that sound more speech-like
+                audio = (
+                    0.3 * np.sin(2 * np.pi * base_freq * t) +           # Fundamental
+                    0.2 * np.sin(2 * np.pi * base_freq * 2 * t) +       # First harmonic
+                    0.1 * np.sin(2 * np.pi * base_freq * 3 * t) +       # Second harmonic
+                    0.05 * np.random.normal(0, 0.1, samples)            # Add some noise
+                )
+                
+                # Apply envelope to make it sound more like speech segments
+                envelope = np.ones_like(audio)
+                segment_length = samples // 10  # 10 segments
+                for seg in range(10):
+                    start = seg * segment_length
+                    end = min((seg + 1) * segment_length, samples)
+                    if seg % 3 == 0:  # Create some quiet segments (pauses)
+                        envelope[start:end] *= 0.1
+                    else:
+                        # Fade in/out for each segment
+                        fade_len = min(1000, (end - start) // 4)
+                        envelope[start:start + fade_len] *= np.linspace(0.1, 1, fade_len)
+                        envelope[end - fade_len:end] *= np.linspace(1, 0.1, fade_len)
+                
+                audio *= envelope
+                
+                # Normalize to prevent clipping
+                audio = audio / np.max(np.abs(audio)) * 0.8
+                
+                # Save the fake audio file
+                sf.write(fake_path, audio, sample_rate)
+                
+                self.count += 1
+                
+                # Simulate some processing time
+                time.sleep(0.01)
+                
+                step.log(f"DRY RUN: Created {fake_filename} (60.0s, {(fake_path.stat().st_size / 1024 / 1024):.1f}MB)")
+                
+                progress.advance(task)
+                step.update({
+                    "current_file": fake_filename,
+                    "files_created": self.count
+                })
+        
+        # Update dry run state
+        self._dry_run_batches_processed += 1
+        
+        step.update({
+            "files_downloaded": self.count,
+            "batch_complete": self._dry_run_batches_processed >= self._dry_run_total_batches,
+            "batches_completed": self._dry_run_batches_processed,
+            "total_batches": self._dry_run_total_batches
+        })
+        
+        step.log(f"DRY RUN: Batch {batch_num} simulation complete: {self.count} fake files created")
 
     def download_batch_files(self, batch: List[dict], step_context) -> int:
         """Download files from a batch, return count of successfully downloaded files"""
@@ -239,6 +364,8 @@ class S3Batcher:
         """Upload metadata files to S3 with progress tracking"""
         
         with self.logger.step("metadata_upload", "Upload metadata to S3") as step:
+            if self.dry_run:
+                return self._upload_metadata_dry_run(step)
             # Collect metadata files
             metadata_files = []
             total_size = 0
@@ -310,6 +437,8 @@ class S3Batcher:
         batch_num = self.progress.batch_count + 1
         
         with self.logger.step(f"batch_upload_{batch_num}", f"Upload batch #{batch_num} results") as step:
+            if self.dry_run:
+                return self._upload_dry_run(wave_paths, batch_num, step)
             if not wave_paths:
                 step.log("No .wav files found to upload", LogLevel.WARN)
                 step.update({"files_to_upload": 0})
@@ -443,3 +572,119 @@ class S3Batcher:
         if not token:
             return "None"
         return f"{token[:20]}..." if len(token) > 20 else token
+
+    def _upload_metadata_dry_run(self, step):
+        """Simulate metadata upload for dry run mode"""
+        import time
+        
+        # Collect metadata files
+        metadata_files = []
+        total_size = 0
+        
+        step.log("DRY RUN: Scanning for metadata files...")
+        
+        for root, dirs, files in os.walk(self.metadata_path):
+            for file in files:
+                if file.endswith(('.json', '.csv', '.txt', '.scp')):
+                    file_path = Path(root) / file
+                    if file_path.exists():  # Only count files that actually exist
+                        file_size = file_path.stat().st_size
+                        metadata_files.append((root, file, file_size))
+                        total_size += file_size
+        
+        if not metadata_files:
+            step.log("DRY RUN: No metadata files found to upload", LogLevel.WARN)
+            step.update({"files_found": 0, "mode": "dry_run"})
+            return
+        
+        total_size_mb = total_size / 1024 / 1024
+        step.update({
+            "files_found": len(metadata_files),
+            "total_size_mb": round(total_size_mb, 2),
+            "mode": "dry_run"
+        })
+        
+        step.log(f"DRY RUN: Found {len(metadata_files)} metadata files ({total_size_mb:.1f}MB)")
+        
+        # Simulate upload with progress
+        with self.logger.progress_bar(len(metadata_files), "DRY RUN: Simulating metadata upload") as progress:
+            task = progress.add_task("uploading", total=len(metadata_files))
+            
+            for i, (root, file, file_size) in enumerate(metadata_files):
+                s3_key = os.path.join(self.metadata_prefix, file).replace("\\", "/")
+                file_size_kb = file_size / 1024
+                
+                # Simulate upload time
+                time.sleep(0.05)
+                
+                step.log(f"DRY RUN: Would upload {file} → {s3_key} ({file_size_kb:.1f}KB)")
+                
+                progress.advance(task)
+                step.update({
+                    "current_file": file,
+                    "uploaded_count": i + 1
+                })
+        
+        step.update({
+            "uploaded_successfully": len(metadata_files),
+            "failed_uploads": 0
+        })
+        
+        step.log(f"DRY RUN: Would upload all {len(metadata_files)} metadata files successfully")
+
+    def _upload_dry_run(self, wave_paths: List[Path], batch_num: int, step):
+        """Simulate upload for dry run mode"""
+        import time
+        
+        if not wave_paths:
+            step.log("DRY RUN: No .wav files found to upload", LogLevel.WARN)
+            step.update({"files_to_upload": 0, "mode": "dry_run"})
+            return
+        
+        # Calculate total size
+        total_size = sum(p.stat().st_size for p in wave_paths)
+        total_size_mb = total_size / 1024 / 1024
+        
+        step.log(f"DRY RUN: Found {len(wave_paths)} processed files to upload ({total_size_mb:.1f}MB)")
+        step.update({
+            "files_to_upload": len(wave_paths),
+            "total_size_mb": round(total_size_mb, 2),
+            "mode": "dry_run"
+        })
+        
+        # Simulate upload with progress
+        uploaded_size = 0
+        
+        with self.logger.progress_bar(len(wave_paths), "DRY RUN: Simulating processed file upload") as progress:
+            task = progress.add_task("uploading", total=len(wave_paths))
+            
+            for i, audio_path in enumerate(wave_paths):
+                key = f"{self.processed_prefix}/{audio_path.name}"
+                file_size = audio_path.stat().st_size
+                file_size_mb = file_size / 1024 / 1024
+                
+                # Simulate upload time based on file size
+                time.sleep(0.02)
+                
+                uploaded_size += file_size
+                
+                step.log(f"DRY RUN: Would upload {audio_path.name} → {key} ({file_size_mb:.1f}MB)")
+                
+                progress.advance(task)
+                step.update({
+                    "current_file": audio_path.name,
+                    "uploaded_count": i + 1,
+                    "uploaded_size_mb": round(uploaded_size / 1024 / 1024, 2)
+                })
+        
+        step.update({
+            "uploaded_successfully": len(wave_paths),
+            "failed_uploads": 0,
+            "final_uploaded_size_mb": round(uploaded_size / 1024 / 1024, 2)
+        })
+        
+        step.log(f"DRY RUN: Would upload all {len(wave_paths)} files successfully")
+        
+        # Note: In dry run mode, we don't actually update progress tracking
+        # since we're not really processing files
+        step.log("DRY RUN: Skipping progress tracking updates")
