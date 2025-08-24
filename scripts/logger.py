@@ -424,6 +424,139 @@ def example_integration():
     logger.success("Pipeline completed successfully!")
     logger.print_summary()
 
+def show_config_summary(args, logger: PrettyLogger):
+    """Display a comprehensive summary of all configuration settings"""
+    with logger.step("config_summary", "Configuration Summary") as step:
+        
+        # Create configuration table
+        from rich.table import Table
+        from rich.console import Console
+        from rich.panel import Panel
+        
+        console = Console()
+        
+        # Main configuration table
+        config_table = Table(title="Pipeline Configuration", show_header=True, header_style="bold cyan")
+        config_table.add_column("Setting", style="cyan", no_wrap=True, min_width=20)
+        config_table.add_column("Value", style="bright_white", min_width=30)
+        config_table.add_column("Description", style="dim white")
+        
+        # File paths section
+        config_table.add_row("📁 INPUT PATH", str(args.in_path), "Source directory for audio files")
+        config_table.add_row("📁 OUTPUT PATH", str(args.out_path), "Destination for processed chunks")
+        config_table.add_row("📁 METADATA PATH", str(args.metadata_path), "Location for metadata files")
+        config_table.add_row("📄 CSV FILENAME", str(args.csv_filename), "Output CSV with chunk information")
+        
+        # Add separator
+        config_table.add_row("", "", "")
+        
+        # Processing configuration
+        config_table.add_row("🎤 WHISPER MODEL", args.whisper_size.upper(), f"Model size for transcription")
+        config_table.add_row("🌍 LANGUAGE", args.lan.upper(), "Target language for processing")
+        config_table.add_row("📊 WHISPER BATCH SIZE", str(args.whisper_batch_size), "Transcription batch size")
+        config_table.add_row("🔊 TARGET SAMPLE RATE", f"{args.target_sr:,} Hz", "Output audio sample rate")
+        
+        # Add separator  
+        config_table.add_row("", "", "")
+        
+        # S3 configuration
+        config_table.add_row("☁️ S3 BUCKET", args.s3_bucket, "AWS S3 bucket name")
+        config_table.add_row("📂 PROCESSED PREFIX", args.s3_processed_prefix, "S3 prefix for output files")
+        config_table.add_row("📦 S3 BATCH SIZE", str(args.s3_batch_size), "Files per S3 download batch")
+        
+        # Add separator
+        config_table.add_row("", "", "")
+        
+        # Runtime options
+        mode_flags = []
+        if args.only_meta:
+            mode_flags.append("METADATA-ONLY")
+        if args.dry_run:
+            mode_flags.append("DRY-RUN")
+        if args.verbose:
+            mode_flags.append("VERBOSE")
+        if args.live_dashboard:
+            mode_flags.append("LIVE-DASHBOARD")
+        
+        mode_display = " | ".join(mode_flags) if mode_flags else "NORMAL"
+        config_table.add_row("⚙️ RUNTIME MODE", mode_display, "Processing mode and flags")
+        
+        # Display the table in a panel
+        config_panel = Panel(
+            config_table,
+            title="🔧 Processing Configuration",
+            border_style="blue",
+            padding=(1, 2)
+        )
+        
+        console.print()
+        console.print(config_panel)
+        
+        # Additional info section
+        info_table = Table(show_header=False, box=None, padding=(0, 1))
+        info_table.add_column("", style="dim cyan", no_wrap=True)
+        info_table.add_column("", style="dim white")
+        
+        # Calculate some derived values
+        whisper_models = {
+            "tiny": "~39MB, fastest, lowest quality",
+            "base": "~74MB, fast, basic quality", 
+            "small": "~244MB, balanced speed/quality",
+            "medium": "~769MB, slower, better quality",
+            "large": "~1550MB, slowest, best quality"
+        }
+        
+        model_info = whisper_models.get(args.whisper_size, "Unknown model size")
+        
+        info_table.add_row("Model Details:", f"{model_info}")
+        info_table.add_row("Expected Output:", f"44.1kHz mono WAV files + metadata")
+        
+        if not args.dry_run and not args.only_meta:
+            info_table.add_row("Pipeline Flow:", "S3 Download → Transcribe → Align → Split → Upload")
+        elif args.dry_run:
+            info_table.add_row("Pipeline Flow:", "S3 Download → [SIMULATION ONLY]")
+        elif args.only_meta:
+            info_table.add_row("Pipeline Flow:", "Metadata Upload Only")
+        
+        # Memory/performance warnings
+        warnings = []
+        if args.whisper_batch_size > 16:
+            warnings.append(f"Large batch size ({args.whisper_batch_size}) may cause GPU memory issues")
+        if args.target_sr > 48000:
+            warnings.append(f"High sample rate ({args.target_sr}Hz) will create large files")
+        if args.s3_batch_size > 500:
+            warnings.append(f"Large S3 batch size ({args.s3_batch_size}) may be slow to download")
+        
+        if warnings:
+            info_table.add_row("⚠️ Warnings:", warnings[0])
+            for warning in warnings[1:]:
+                info_table.add_row("", warning)
+        
+        info_panel = Panel(
+            info_table,
+            title="ℹ️ Additional Information", 
+            border_style="yellow",
+            padding=(1, 2)
+        )
+        
+        console.print(info_panel)
+        console.print()
+        
+        # Update step with key configuration
+        step.update({
+            "whisper_model": args.whisper_size,
+            "language": args.lan,
+            "target_sample_rate": args.target_sr,
+            "s3_bucket": args.s3_bucket,
+            "whisper_batch_size": args.whisper_batch_size,
+            "s3_batch_size": args.s3_batch_size,
+            "runtime_mode": mode_display,
+            "input_path": str(args.in_path),
+            "output_path": str(args.out_path)
+        })
+        
+        step.log("Configuration summary displayed")
+
 
 if __name__ == "__main__":
     example_integration()

@@ -1,6 +1,6 @@
 from scripts.preprocessor import Preprocessor, ProcessedChunk
 from scripts.s3_batcher import S3Batcher
-from scripts.logger import PrettyLogger, LogLevel
+from scripts.logger import PrettyLogger, LogLevel, show_config_summary
 from scripts import constants as const
 from pathlib import Path
 import argparse
@@ -392,6 +392,18 @@ def main():
         if not validate_args(args, logger):
             logger.error("❌ Configuration validation failed")
             sys.exit(1)
+
+        show_config_summary(args, logger)
+
+        response = input("\n📋 Review the configuration above. Continue with processing? [Y/n]: ").strip().lower()
+
+        if response in ['n', 'no']:
+                logger.info("❌ Processing cancelled by user")
+                sys.exit(0)
+        elif response and response not in ['y', 'yes', '']:
+               logger.warn(f"Invalid response '{response}'. Assuming 'yes'.")
+        
+        logger.info("🚀 Starting processing pipeline...")
         
         # Setup directories
         setup_directories(args, logger)
@@ -407,7 +419,9 @@ def main():
         
         # Initialize components
         proc, batcher = initialize_components(args, logger)
-        
+
+        # prompt user maybe put in a func
+       
         # Run main processing pipeline
         processing_context = logger.live_status_panel if args.live_dashboard else logger.panel_section
         context_args = ("📊 Live Processing Dashboard",) if args.live_dashboard else ("🚀 Processing Pipeline", "blue")
