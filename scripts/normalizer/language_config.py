@@ -63,7 +63,15 @@ class LanguageConfig(ABC):
         pass
 
     @abstractmethod
-    def format_hundreds_special_cases(self, hundreds: int, remainder: int) -> str | None:
+    def format_hundreds_special_cases(
+        self, hundreds: int, remainder: int
+    ) -> str | None:
+        pass
+
+    @abstractmethod
+    def format_time_am_pm(
+        self, hours: int, minutes: int, hour_words: str, minute_words: str, period: str
+    ) -> str:
         pass
 
     @abstractmethod

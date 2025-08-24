@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 from typing import List, Optional
 import shutil
+import time
 
 from .progress import ProgressInfo
 from .logger import PrettyLogger, LogLevel
@@ -195,11 +196,6 @@ class S3Batcher:
 
     def _next_batch_dry_run(self, batch_num: int, step):
         """Simulate downloading a batch for dry run mode"""
-        import time
-        import numpy as np
-        import soundfile as sf
-        
-        step.log("DRY RUN: Simulating batch preparation...")
         self.count = 0
         self.clear_local_dirs()
         
@@ -217,63 +213,19 @@ class S3Batcher:
         
         step.log(f"DRY RUN: Simulating download of {files_in_this_batch} files...")
         
-        # Create fake audio files
-        sample_rate = 44100
-        duration = 60  # 60 second files
-        samples = int(sample_rate * duration)
-        
         with self.logger.progress_bar(files_in_this_batch, "DRY RUN: Creating fake audio files") as progress:
             task = progress.add_task("creating", total=files_in_this_batch)
             
             for i in range(files_in_this_batch):
-                # Generate fake filename
                 file_id = (self._dry_run_batches_processed * self.batch_size) + i + 1
                 fake_filename = f"fake_audio_{file_id:04d}.wav"
                 fake_path = self.download_to / fake_filename
                 
-                # Create parent directory
                 fake_path.parent.mkdir(parents=True, exist_ok=True)
-                
-                # Generate fake audio (white noise that sounds like speech frequencies)
-                # Create a more realistic sounding fake audio by mixing frequencies
-                t = np.linspace(0, duration, samples)
-                base_freq = 200 + (i % 10) * 50  # Vary base frequency per file
-                
-                # Create a mix of frequencies that sound more speech-like
-                audio = (
-                    0.3 * np.sin(2 * np.pi * base_freq * t) +           # Fundamental
-                    0.2 * np.sin(2 * np.pi * base_freq * 2 * t) +       # First harmonic
-                    0.1 * np.sin(2 * np.pi * base_freq * 3 * t) +       # Second harmonic
-                    0.05 * np.random.normal(0, 0.1, samples)            # Add some noise
-                )
-                
-                # Apply envelope to make it sound more like speech segments
-                envelope = np.ones_like(audio)
-                segment_length = samples // 10  # 10 segments
-                for seg in range(10):
-                    start = seg * segment_length
-                    end = min((seg + 1) * segment_length, samples)
-                    if seg % 3 == 0:  # Create some quiet segments (pauses)
-                        envelope[start:end] *= 0.1
-                    else:
-                        # Fade in/out for each segment
-                        fade_len = min(1000, (end - start) // 4)
-                        envelope[start:start + fade_len] *= np.linspace(0.1, 1, fade_len)
-                        envelope[end - fade_len:end] *= np.linspace(1, 0.1, fade_len)
-                
-                audio *= envelope
-                
-                # Normalize to prevent clipping
-                audio = audio / np.max(np.abs(audio)) * 0.8
-                
-                # Save the fake audio file
-                sf.write(fake_path, audio, sample_rate)
                 
                 self.count += 1
                 
-                # Simulate some processing time
                 time.sleep(0.01)
-                
                 step.log(f"DRY RUN: Created {fake_filename} (60.0s, {(fake_path.stat().st_size / 1024 / 1024):.1f}MB)")
                 
                 progress.advance(task)
@@ -282,7 +234,6 @@ class S3Batcher:
                     "files_created": self.count
                 })
         
-        # Update dry run state
         self._dry_run_batches_processed += 1
         
         step.update({

@@ -307,32 +307,7 @@ def run_processing_pipeline(args, proc, batcher, logger: PrettyLogger):
                         # Download batch from S3
                         batch_step.log("Downloading files from S3...")
                         batcher.next_batch()
-                        
-                        if args.dry_run:
-                            batch_step.log("DRY RUN: Simulating audio processing...")
-                            batch_step.update({"mode": "dry_run"})
-                            
-                            # Simulate processing the fake files
-                            batch_chunks = simulate_processing(args.in_path, args.out_path, csvfile, writer, batch_step)
-                            processed_files = len(list(args.in_path.glob("*.wav")))
-                            
-                            total_processed_chunks += batch_chunks
-                            batch_duration = time.time() - batch_start_time
-                            
-                            batch_step.update({
-                                "files_processed_this_batch": processed_files,
-                                "chunks_created_this_batch": batch_chunks,
-                                "total_chunks_created": total_processed_chunks,
-                                "batch_duration_seconds": round(batch_duration, 1),
-                                "chunks_per_minute": round((batch_chunks / batch_duration) * 60, 1) if batch_duration > 0 else 0
-                            })
-                            
-                            # Simulate uploading processed files
-                            batch_step.log("DRY RUN: Simulating upload...")
-                            batcher.upload()
-                            batch_step.log(f"DRY RUN: Batch #{batch_count} complete: {batch_chunks} chunks simulated")
-                            continue
-                        
+                                                
                         # Process downloaded files
                         batch_step.log("Starting audio processing...")
                         batch_chunks = 0
@@ -391,89 +366,8 @@ def run_processing_pipeline(args, proc, batcher, logger: PrettyLogger):
     
     return total_processed_chunks, batch_count, failed_batches
 
-
-def simulate_processing(in_path: Path, out_path: Path, csvfile, writer, batch_step) -> int:
-    """Simulate processing fake audio files for dry run mode"""
-    import time
-    import random
-    from pathlib import Path
-    
-    # Find the fake audio files created by S3Batcher
-    wave_paths = list(in_path.glob("*.wav"))
-    
-    if not wave_paths:
-        batch_step.log("DRY RUN: No fake audio files found to process", LogLevel.WARN)
-        return 0
-    
-    batch_step.log(f"DRY RUN: Processing {len(wave_paths)} fake audio files...")
-    
-    total_chunks = 0
-    
-    # Simulate processing each file
-    for i, audio_path in enumerate(wave_paths):
-        # Simulate realistic processing time
-        time.sleep(0.1)
-        
-        # Generate fake chunks (each file produces 3-8 chunks)
-        chunks_per_file = random.randint(3, 8)
-        
-        for chunk_idx in range(chunks_per_file):
-            # Create fake chunk data
-            chunk_id = f"fake_{audio_path.stem}_chunk_{chunk_idx:04d}"
-            fake_text = f"DRY RUN: This is simulated transcription text for chunk {chunk_idx + 1} from {audio_path.name}"
-            
-            # Write to CSV (simulate the real ProcessedChunk.to_list() format)
-            fake_chunk_data = [
-                str(audio_path),  # original_audio_path
-                "metadata/text",  # text_path  
-                f"processed/{chunk_id}.wav",  # audio_path
-                fake_text,  # text
-                chunk_idx,  # chunk_index
-            ]
-            
-            writer.writerow(fake_chunk_data)
-            total_chunks += 1
-        
-        batch_step.log(f"DRY RUN: Processed {audio_path.name} → {chunks_per_file} chunks")
-        
-        # Update progress
-        batch_step.update({
-            "current_file": audio_path.name,
-            "files_processed": i + 1,
-            "chunks_created_so_far": total_chunks
-        })
-    
-    batch_step.log(f"DRY RUN: Simulated processing complete: {total_chunks} chunks created")
-    
-    # Create fake processed files in the output directory to simulate upload
-    out_path.mkdir(parents=True, exist_ok=True)
-    
-    import soundfile as sf
-    import numpy as np
-    
-    # Create fake processed chunks
-    for i in range(total_chunks):
-        fake_chunk_filename = f"fake_processed_chunk_{i:04d}.wav"
-        fake_chunk_path = out_path / fake_chunk_filename
-        
-        # Create short fake audio chunk (5 seconds)
-        duration = 5.0
-        sample_rate = 44100
-        samples = int(duration * sample_rate)
-        
-        # Generate simple sine wave
-        t = np.linspace(0, duration, samples)
-        audio = 0.3 * np.sin(2 * np.pi * 440 * t)  # 440 Hz tone
-        
-        # Save the fake chunk
-        sf.write(fake_chunk_path, audio, sample_rate)
-    
-    return total_chunks
-
-
 def main():
     """Main processing pipeline"""
-    # Initialize basic variables
     start_time = time.time()
     args = None
     logger = None
@@ -520,8 +414,6 @@ def main():
         
         # Initialize components
         proc, batcher = initialize_components(args, logger)
-
-        # prompt user maybe put in a func
        
         # Run main processing pipeline
         processing_context = logger.live_status_panel if args.live_dashboard else logger.panel_section
