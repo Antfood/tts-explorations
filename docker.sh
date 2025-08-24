@@ -1,299 +1,261 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ------------ Defaults ------------
-IMAGE_NAME="${IMAGE_NAME:-tts-preprocess}"
-IMAGE_TAG="${IMAGE_TAG:-latest}"
-DOCKERHUB_USER="${DOCKERHUB_USER:-pbotsaris}"
-GHCR_USER="${GHCR_USER:-$DOCKERHUB_USER}"
-PLATFORMS="${PLATFORMS:-linux/amd64}"
-DOCKERFILE="${DOCKERFILE:-docker/Dockerfile.preprocess}"
-CONTEXT="${CONTEXT:-.}"
-BUILD_ARGS="${BUILD_ARGS:-}"
-NO_CACHE="${NO_CACHE:-0}"
-USE_CACHE="${USE_CACHE:-0}"  # New: Control whether to use cache at all
+# Enhanced build+push script with cache management
+# Supports cache options, size limits, and cleanup
 
 usage() {
-  cat <<'EOF'
-Usage: $0 <build|push|clean|prune> [TAG] [FLAVOR]
-
-FLAVOR: preprocess | espnet
-Rules:
-  - If only one extra arg is given, it must be a FLAVOR.
-  - If two extra args are given, they are TAG and FLAVOR, respectively.
-  - TAG defaults to "dev" for build and "latest" for push.
-
-Examples:
-  ./docker.sh build                 # prompts for flavor, tag=dev
-  ./docker.sh build espnet          # flavor=espnet, tag=dev
-  ./docker.sh build v0.3.1 espnet   # flavor=espnet, tag=v0.3.1
-  ./docker.sh push                  # prompts for flavor, tag=latest
-  ./docker.sh push v0.4.0 preprocess
-  ./docker.sh clean                 # removes all Docker caches
-  ./docker.sh prune                 # prunes buildx cache
-  
-  # Build without any cache:
-  NO_CACHE=1 ./docker.sh build espnet
-  
-  # Build without using local cache dirs (but still use Docker's internal cache):
-  USE_CACHE=0 ./docker.sh build espnet
-  
-  # Push to both Docker Hub and GitHub Container Registry:
-  GHCR=1 ./docker.sh push v0.4.0 espnet
-
-Environment Variables:
-  DOCKERHUB_USER    Docker Hub username (default: pbotsaris)
-  GHCR_USER         GitHub Container Registry username (default: same as DOCKERHUB_USER)
-  IMAGE_NAME        Image name (default: depends on flavor)
-  IMAGE_TAG         Default tag for push (default: latest)
-  PLATFORMS         Build platforms (default: linux/amd64)
-  DOCKERFILE        Path to Dockerfile (default: depends on flavor)
-  CONTEXT           Build context path (default: .)
-  BUILD_ARGS        Additional build arguments
-  NO_CACHE          Set to 1 to disable all caching
-  USE_CACHE         Set to 0 to disable local cache dirs (default: 1)
-  GHCR              Set to 1 to also push to GitHub Container Registry
-EOF
+  echo "Usage: $0 <preprocess|espnet> [TAG] [OPTIONS]"
+  echo ""
+  echo "Arguments:"
+  echo "  FLAVOR    Build flavor: 'preprocess' or 'espnet'"
+  echo "  TAG       Image tag (default: latest)"
+  echo ""
+  echo "Options:"
+  echo "  --no-cache           Disable build cache (slower but clean)"
+  echo "  --cache-size SIZE    Set buildx cache size limit (e.g., 10GB, 5GB)"
+  echo "  --cleanup-after      Clean buildx cache after build"
+  echo "  --prune-before       Prune buildx cache before build"
+  echo "  --show-cache         Show current cache usage"
+  echo "  -h, --help           Show this help"
+  echo ""
+  echo "Examples:"
+  echo "  $0 preprocess latest                    # Use default cache"
+  echo "  $0 preprocess latest --no-cache         # No cache, clean build"
+  echo "  $0 preprocess latest --cache-size 8GB   # Limit cache to 8GB"
+  echo "  $0 preprocess --cleanup-after           # Clean up after build"
+  echo "  $0 --show-cache                        # Just show cache status"
+  echo "  $0 --prune-before preprocess           # Clean before building"
   exit 1
 }
 
-is_valid_flavor() { [[ "$1" == "preprocess" || "$1" == "espnet" ]]; }
-is_valid_tag() {
-  # Allow v1.2.3, 1.2.3, 2025.08.23, 1.0.0-rc1, latest, dev
-  [[ "$1" =~ ^(dev|latest|v?[0-9]+(\.[0-9]+)*([._-][A-Za-z0-9]+)?)$ ]]
-}
+# Parse arguments
+FLAVOR=""
+TAG="latest"
+USE_CACHE=true
+CACHE_SIZE=""
+CLEANUP_AFTER=false
+PRUNE_BEFORE=false
+SHOW_CACHE=false
 
-login_check() { 
-  docker info >/dev/null 2>&1 || { echo "Docker is not running." >&2; exit 1; }
-}
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    preprocess|espnet)
+      FLAVOR="$1"
+      shift
+      ;;
+    --no-cache)
+      USE_CACHE=false
+      shift
+      ;;
+    --cache-size)
+      CACHE_SIZE="$2"
+      shift 2
+      ;;
+    --cleanup-after)
+      CLEANUP_AFTER=true
+      shift
+      ;;
+    --prune-before)
+      PRUNE_BEFORE=true
+      shift
+      ;;
+    --show-cache)
+      SHOW_CACHE=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      ;;
+    -*)
+      echo "Unknown option: $1"
+      usage
+      ;;
+    *)
+      if [[ -z "$TAG" || "$TAG" == "latest" ]]; then
+        TAG="$1"
+      else
+        echo "Unexpected argument: $1"
+        usage
+      fi
+      shift
+      ;;
+  esac
+done
 
-docker_hub_login() {
-  echo "Checking Docker Hub login status..."
-  if ! docker pull alpine:latest >/dev/null 2>&1; then
-    echo "Not logged in to Docker Hub. Logging in..."
-    docker login
-  else
-    echo "Already logged in to Docker Hub."
-  fi
-}
-
-builder_setup() {
-  echo "Setting up Docker buildx..."
-  docker buildx create --name antfood --use >/dev/null 2>&1 || docker buildx use antfood
-  
-  # Only setup cache directories if USE_CACHE=1
-  if [[ "$USE_CACHE" = "1" ]]; then
-    echo "Setting up cache directories..."
-    CACHE_DIR=".buildx-cache"
-    CACHE_NEW=".buildx-cache-new"
-    mkdir -p "$CACHE_DIR"
-    echo "Cache setup complete."
-  else
-    echo "Skipping cache setup (USE_CACHE=0)"
-  fi
-}
-
-cache_swap() { 
-  if [[ "$USE_CACHE" = "1" && -d "${CACHE_NEW:-}" ]]; then 
-    rm -rf "${CACHE_DIR:-}"
-    mv "$CACHE_NEW" "$CACHE_DIR"
-  fi
-}
-
-cleanup_on_fail() { 
-  if [[ "$USE_CACHE" = "1" ]]; then
-    echo "Build interrupted; cleaning temp cache dir..."
-    rm -rf "${CACHE_NEW:-}" || true
-  fi
-}
-trap cleanup_on_fail INT TERM
-
-tag_list() {
-  local t="${1:-$IMAGE_TAG}"
-  local hub="docker.io/${DOCKERHUB_USER}/${IMAGE_NAME}:${t}"
-  local tags=(-t "$hub")
-  
-  # Also tag without docker.io prefix for local use
-  tags+=(-t "${DOCKERHUB_USER}/${IMAGE_NAME}:${t}")
-  
-  if [[ "${GHCR:-0}" = "1" ]]; then
-    local ghcr="ghcr.io/${GHCR_USER}/${IMAGE_NAME}:${t}"
-    tags+=(-t "$ghcr")
-  fi
-  printf '%s\n' "${tags[@]}"
-}
-
-build_flags() {
-  local flags=(--platform "$PLATFORMS" -f "$DOCKERFILE" "$CONTEXT")
-  
-  # Add cache flags only if USE_CACHE=1
-  if [[ "$USE_CACHE" = "1" ]]; then
-    flags+=(--cache-from "type=local,src=$CACHE_DIR"
-            --cache-to   "type=local,dest=$CACHE_NEW,mode=max")
-  fi
-  
-  # Add no-cache flag if NO_CACHE=1
-  [[ "$NO_CACHE" = "1" ]] && flags+=(--no-cache)
-  
-  if [[ -n "$BUILD_ARGS" ]]; then
-    # shellcheck disable=SC2206
-    flags+=($BUILD_ARGS)
-  fi
-  echo "${flags[@]}"
-}
-
-# --- helper to prompt only when interactive ---
-prompt_flavor() {
-  if [ -t 0 ]; then
-    echo "No flavor provided. Please choose one:"
-    echo "  1) preprocess"
-    echo "  2) espnet"
-    read -rp "Enter choice [1-2]: " choice
-    case "$choice" in
-      1) echo preprocess ;;
-      2) echo espnet ;;
-      *) echo "Invalid choice." >&2; exit 1 ;;
-    esac
-  else
-    echo "No FLAVOR given and no TTY to prompt. Usage: $0 <cmd> [TAG] <preprocess|espnet>" >&2
-    exit 2
-  fi
-}
-
-clean_all_cache() {
-  echo "Cleaning all Docker build caches..."
-  
-  # Remove local cache directories
-  echo "Removing local cache directories..."
-  rm -rf .buildx-cache* || true
-  
-  # Prune buildx cache
-  echo "Pruning buildx cache..."
-  docker buildx prune --all --force || true
-  
-  # Clean up dangling images
-  echo "Removing dangling images..."
-  docker image prune -f || true
-  
-  # Optional: Remove all build cache (more aggressive)
-  echo "Removing all build cache..."
-  docker builder prune -a -f || true
-  
-  echo "Cache cleanup complete!"
+# Function to show cache status
+show_cache_status() {
+  echo "📊 Current Docker cache usage:"
+  docker system df
   echo ""
-  echo "To see disk usage: docker system df"
-  echo "For more aggressive cleanup: docker system prune -a"
+  echo "🔧 Buildx builders:"
+  docker buildx ls
+  echo ""
 }
 
-# ------------ Parse ------------
-cmd="${1:-}"; arg2="${2:-}"; arg3="${3:-}"
-[[ -z "$cmd" ]] && usage
-
-# Special case for commands that don't need flavor
-if [[ "$cmd" == "clean" ]]; then
-  clean_all_cache
-  exit 0
-elif [[ "$cmd" == "prune" ]]; then
-  echo "Pruning buildx cache..."
-  docker buildx prune --all --force
-  echo "Prune complete."
-  exit 0
-elif [[ "$cmd" == "cache" ]]; then
-  login_check
-  echo "Setting up Docker buildx..."
-  docker buildx create --name antfood --use >/dev/null 2>&1 || docker buildx use antfood
-  echo "Buildx setup complete."
-  exit 0
-fi
-
-override_tag=""
-flavor=""
-
-if [[ -n "$arg3" ]]; then
-  is_valid_tag "$arg2" || { echo "Error: Invalid TAG: '$arg2'"; usage; }
-  is_valid_flavor "$arg3" || { echo "Error: Invalid FLAVOR: '$arg3'. Must be 'preprocess' or 'espnet'"; exit 1; }
-  override_tag="$arg2"; flavor="$arg3"
-elif [[ -n "$arg2" ]]; then
-  if is_valid_flavor "$arg2"; then
-    flavor="$arg2"
-  elif is_valid_tag "$arg2"; then
-    override_tag="$arg2"
-    flavor="$(prompt_flavor)"
-  else
-    echo "Error: Invalid argument: '$arg2'. Must be a valid TAG or FLAVOR (preprocess/espnet)"
-    exit 1
+# Function to setup cache-limited builder
+setup_cache_builder() {
+  local size="$1"
+  local builder_name="limited-cache-builder"
+  
+  echo "🔧 Setting up buildx builder with ${size} cache limit..."
+  
+  # Remove existing builder if it exists
+  if docker buildx ls | grep -q "$builder_name"; then
+    docker buildx rm "$builder_name" >/dev/null 2>&1 || true
   fi
-else
-  # Only prompt for build/push commands
-  if [[ "$cmd" == "build" || "$cmd" == "push" ]]; then
-    flavor="$(prompt_flavor)"
+  
+  # Create new builder with size limit
+  docker buildx create --name "$builder_name" \
+    --driver-opt env.BUILDKIT_CACHE_MAX_SIZE="$size" >/dev/null
+  
+  docker buildx use "$builder_name"
+  echo "✅ Using builder '$builder_name' with ${size} cache limit"
+}
+
+# Function to cleanup cache
+cleanup_cache() {
+  echo "🧹 Cleaning up buildx cache..."
+  if [[ "$1" == "full" ]]; then
+    docker buildx prune -a --all -f
+    echo "✅ Full cache cleanup completed"
   else
-    echo "Error: Unknown command: '$cmd'"
-    usage
+    docker buildx prune -f --keep-storage "${1:-5GB}"
+    echo "✅ Cache pruned, keeping ${1:-5GB}"
+  fi
+}
+
+# Show cache if requested
+if [[ "$SHOW_CACHE" == true ]]; then
+  show_cache_status
+  if [[ -z "$FLAVOR" ]]; then
+    exit 0
   fi
 fi
 
-# Flavor-specific defaults
-case "$flavor" in
+# Validate flavor
+if [[ -z "$FLAVOR" ]]; then
+  echo "Error: must specify flavor (preprocess or espnet)"
+  usage
+fi
+
+if [[ "$FLAVOR" != "preprocess" && "$FLAVOR" != "espnet" ]]; then
+  echo "Error: flavor must be 'preprocess' or 'espnet'"
+  usage
+fi
+
+# Setup environment
+export DOCKER_BUILDKIT=1
+
+# Resolve repo root relative to this script
+SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR" && (git rev-parse --show-toplevel 2>/dev/null || pwd))"
+DOCKERHUB_USER="${DOCKERHUB_USER:-pbotsaris}"
+
+# Set dockerfile and image name
+case "$FLAVOR" in
   preprocess)
     IMAGE_NAME="tts-preprocess"
-    DOCKERFILE="docker/Dockerfile.preprocess"
+    DOCKERFILE="$REPO_ROOT/docker/Dockerfile.preprocess"
     ;;
   espnet)
     IMAGE_NAME="tts-espnet"
-    DOCKERFILE="docker/Dockerfile.espnet"
+    DOCKERFILE="$REPO_ROOT/docker/Dockerfile.espnet"
     ;;
 esac
 
-# ------------ Commands ------------
+# Sanity check
+[[ -f "$DOCKERFILE" ]] || { echo "Missing Dockerfile: $DOCKERFILE"; exit 2; }
 
-case "$cmd" in
-  build)
-    login_check
-    builder_setup
-    
-    final_tag="${override_tag:-dev}"
-    echo "Building (local load)… flavor=$flavor, tag=$final_tag"
-    echo "Cache settings: USE_CACHE=$USE_CACHE, NO_CACHE=$NO_CACHE"
-    
-    docker buildx build $(tag_list "$final_tag") \
-      $(build_flags) --load
-    
-    cache_swap
-    echo "Build complete: ${DOCKERHUB_USER}/${IMAGE_NAME}:${final_tag} ($flavor)"
+# Show initial cache status
+show_cache_status
+
+# Prune before if requested
+if [[ "$PRUNE_BEFORE" == true ]]; then
+  read -p "🗑️  Prune cache before build? [y/N]: " -n 1 -r
+  echo ""
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    cleanup_cache "5GB"
+  fi
+fi
+
+# Setup cache-limited builder if size specified
+if [[ -n "$CACHE_SIZE" ]]; then
+  setup_cache_builder "$CACHE_SIZE"
+fi
+
+# Build configuration
+BUILD_ARGS=(
+  --platform linux/amd64
+  -t "${DOCKERHUB_USER}/${IMAGE_NAME}:${TAG}"
+  -f "$DOCKERFILE"
+  "$REPO_ROOT"
+  --push
+)
+
+# Add no-cache if requested
+if [[ "$USE_CACHE" == false ]]; then
+  BUILD_ARGS+=(--no-cache)
+fi
+
+# Build summary
+echo "🚀 Building and pushing..."
+echo "  flavor:      $FLAVOR"
+echo "  tag:         $TAG"
+echo "  dockerfile:  $DOCKERFILE"
+echo "  context:     $REPO_ROOT"
+echo "  image:       ${DOCKERHUB_USER}/${IMAGE_NAME}:${TAG}"
+echo "  use cache:   $USE_CACHE"
+if [[ -n "$CACHE_SIZE" ]]; then
+  echo "  cache limit: $CACHE_SIZE"
+fi
+echo ""
+
+# Confirm build
+if [[ "$USE_CACHE" == false ]] || [[ -n "$CACHE_SIZE" ]]; then
+  read -p "Continue with build? [Y/n]: " -n 1 -r
+  echo ""
+  if [[ $REPLY =~ ^[Nn]$ ]]; then
+    echo "Build cancelled"
+    exit 0
+  fi
+fi
+
+# Execute build
+echo "⏱️  Starting build..."
+set -x
+docker buildx build "${BUILD_ARGS[@]}"
+set +x
+
+echo ""
+echo "✅ Build completed successfully!"
+echo "📦 Pushed to Docker Hub:"
+echo "    https://hub.docker.com/r/${DOCKERHUB_USER}/${IMAGE_NAME}/tags"
+
+# Show final cache status
+echo ""
+show_cache_status
+
+# Cleanup after if requested
+if [[ "$CLEANUP_AFTER" == true ]]; then
+  echo ""
+  read -p "🧹 Clean up cache now? [y/N]: " -n 1 -r
+  echo ""
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    read -p "   Full cleanup or keep some cache? [f/k]: " -n 1 -r
     echo ""
-    echo "To push this image to Docker Hub, run:"
-    echo "  docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${final_tag}"
-    ;;
-    
-  push)
-    login_check
-    docker_hub_login  # Ensure we're logged in before pushing
-    builder_setup
-    
-    final_tag="${override_tag:-$IMAGE_TAG}"
-    echo "Building and pushing… flavor=$flavor, tag=$final_tag"
-    echo "Cache settings: USE_CACHE=$USE_CACHE, NO_CACHE=$NO_CACHE"
-    echo "Pushing to: Docker Hub (${DOCKERHUB_USER}/${IMAGE_NAME}:${final_tag})"
-    
-    if [[ "${GHCR:-0}" = "1" ]]; then
-      echo "Also pushing to: GitHub Container Registry (ghcr.io/${GHCR_USER}/${IMAGE_NAME}:${final_tag})"
+    if [[ $REPLY =~ ^[Ff]$ ]]; then
+      cleanup_cache "full"
+    else
+      read -p "   How much to keep (e.g., 5GB): " KEEP_SIZE
+      cleanup_cache "$KEEP_SIZE"
     fi
     
-    docker buildx build $(tag_list "$final_tag") \
-      $(build_flags) --push
-    
-    cache_swap
+    # Show final status
     echo ""
-    echo "✅ Push complete!"
-    echo "Docker Hub: https://hub.docker.com/r/${DOCKERHUB_USER}/${IMAGE_NAME}/tags"
-    
-    if [[ "${GHCR:-0}" = "1" ]]; then
-      echo "GitHub: ghcr.io/${GHCR_USER}/${IMAGE_NAME}:${final_tag}"
-    fi
-    ;;
-    
-  *)
-    usage
-    ;;
-esac
+    show_cache_status
+  fi
+fi
+
+echo ""
+echo "🎉 All done!"

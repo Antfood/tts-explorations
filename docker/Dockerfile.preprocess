@@ -1,25 +1,24 @@
-FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
+FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# whisperx needs cudnn v8 and librosa ffmpeg
+#  libcudnn8 as per troubleshooting https://pypi.org/project/whisperx/ in  Common Issues & Troubleshooting
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        libcudnn8 \
-        libcudnn8-dev \
         awscli \
         ffmpeg \
         neovim \
-        ca-certificates curl git && \
+        ca-certificates \
+        curl \
+        git \
+        libcudnn8 \
+        libcudnn8-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# Install requirements (which includes PyTorch with CUDA)
 COPY requirements.in .
-
-RUN pip install --upgrade pip pip-tools && \
-    pip-compile --generate-hashes --output-file=requirements.txt requirements.in && \
-    pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.in
 
 WORKDIR /workspace
 COPY . .
-
 CMD ["bash"]
